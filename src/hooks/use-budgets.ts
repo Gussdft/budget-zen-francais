@@ -27,6 +27,30 @@ export const useBudgets = () => {
         const storedBudgets = localStorage.getItem("budgets");
         if (storedBudgets) {
           setBudgets(JSON.parse(storedBudgets));
+        } else {
+          // Budgets par défaut pour la démonstration
+          const defaultBudgets: Budget[] = [
+            {
+              id: "budget-1",
+              name: "Budget alimentaire",
+              amount: 500,
+              categories: ["cat-3"],
+              type: "monthly",
+              startDate: "2025-04-01",
+              isActive: true
+            },
+            {
+              id: "budget-2",
+              name: "Budget loisirs",
+              amount: 200,
+              categories: ["cat-5"],
+              type: "monthly",
+              startDate: "2025-04-01",
+              isActive: true
+            }
+          ];
+          setBudgets(defaultBudgets);
+          localStorage.setItem("budgets", JSON.stringify(defaultBudgets));
         }
       } catch (error) {
         console.error("Erreur lors du chargement des budgets:", error);

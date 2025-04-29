@@ -5,21 +5,10 @@ import { toast } from "sonner";
 export type Category = {
   id: string;
   name: string;
-  icon: string;
-  type: "income" | "expense" | "both";
   color: string;
+  type: "income" | "expense" | "both";
+  icon: string;
 };
-
-// Catégories par défaut
-const defaultCategories: Category[] = [
-  { id: "cat-1", name: "Alimentation", icon: "shopping-cart", type: "expense", color: "#4CAF50" },
-  { id: "cat-2", name: "Logement", icon: "home", type: "expense", color: "#2196F3" },
-  { id: "cat-3", name: "Transport", icon: "car", type: "expense", color: "#FF9800" },
-  { id: "cat-4", name: "Loisirs", icon: "film", type: "expense", color: "#9C27B0" },
-  { id: "cat-5", name: "Santé", icon: "heart", type: "expense", color: "#F44336" },
-  { id: "cat-6", name: "Salaire", icon: "briefcase", type: "income", color: "#00BCD4" },
-  { id: "cat-7", name: "Investissements", icon: "trending-up", type: "both", color: "#795548" },
-];
 
 export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -34,7 +23,15 @@ export const useCategories = () => {
         if (storedCategories) {
           setCategories(JSON.parse(storedCategories));
         } else {
-          // Si aucune catégorie n'est stockée, on utilise les catégories par défaut
+          // Catégories par défaut
+          const defaultCategories: Category[] = [
+            { id: "cat-1", name: "Salaire", color: "#4CAF50", type: "income", icon: "dollar-sign" },
+            { id: "cat-2", name: "Logement", color: "#2196F3", type: "expense", icon: "home" },
+            { id: "cat-3", name: "Courses", color: "#FF9800", type: "expense", icon: "shopping-cart" },
+            { id: "cat-4", name: "Transport", color: "#795548", type: "expense", icon: "bus" },
+            { id: "cat-5", name: "Loisirs", color: "#9C27B0", type: "expense", icon: "music" },
+            { id: "cat-6", name: "Revenus divers", color: "#4CAF50", type: "income", icon: "plus" }
+          ];
           setCategories(defaultCategories);
           localStorage.setItem("categories", JSON.stringify(defaultCategories));
         }
@@ -49,9 +46,9 @@ export const useCategories = () => {
     loadCategories();
   }, []);
 
-  const addCategory = (category: Omit<Category, "id">) => {
+  const addCategory = (categoryData: Omit<Category, "id">) => {
     const newCategory = {
-      ...category,
+      ...categoryData,
       id: `cat-${Date.now()}`
     };
 
@@ -79,9 +76,9 @@ export const useCategories = () => {
     toast.success("Catégorie supprimée");
   };
 
-  const getCategoryName = (id: string): string => {
-    const category = categories.find(cat => cat.id === id);
-    return category ? category.name : "Catégorie inconnue";
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category?.name || "Non catégorisé";
   };
 
   return { 
