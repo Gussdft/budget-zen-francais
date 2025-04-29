@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { Transaction, useTransactions } from "@/hooks/use-transactions";
 import { TransactionForm } from "./TransactionForm";
+import { TransactionPopup } from "./TransactionPopup";
 import { useCategories } from "@/hooks/use-categories";
 import {
   AlertDialog,
@@ -31,6 +32,7 @@ interface TransactionsListProps {
 
 export function TransactionsList({ transactions }: TransactionsListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const { deleteTransaction } = useTransactions();
   const { getCategoryName } = useCategories();
 
@@ -56,12 +58,24 @@ export function TransactionsList({ transactions }: TransactionsListProps) {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
   };
 
+  const handleRowClick = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+  };
+
   return (
     <div className="space-y-4">
       {editingId && (
         <TransactionForm 
           transactionId={editingId} 
           onClose={() => setEditingId(null)} 
+        />
+      )}
+      
+      {selectedTransaction && (
+        <TransactionPopup 
+          transaction={selectedTransaction}
+          open={!!selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
         />
       )}
       
@@ -78,7 +92,11 @@ export function TransactionsList({ transactions }: TransactionsListProps) {
           </TableHeader>
           <TableBody>
             {sortedTransactions.map((transaction) => (
-              <TableRow key={transaction.id}>
+              <TableRow 
+                key={transaction.id} 
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleRowClick(transaction)}
+              >
                 <TableCell>{formatDate(transaction.date)}</TableCell>
                 <TableCell>{transaction.description}</TableCell>
                 <TableCell>{getCategoryName(transaction.categoryId)}</TableCell>
@@ -90,14 +108,21 @@ export function TransactionsList({ transactions }: TransactionsListProps) {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      onClick={() => setEditingId(transaction.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingId(transaction.id);
+                      }}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
                     
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       </AlertDialogTrigger>

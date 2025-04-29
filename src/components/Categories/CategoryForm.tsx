@@ -56,7 +56,12 @@ export function CategoryForm({ onClose, categoryId }: CategoryFormProps) {
     if (categoryId) {
       updateCategory(categoryId, values);
     } else {
-      addCategory(values);
+      addCategory({
+        name: values.name,
+        icon: values.icon,
+        type: values.type,
+        color: values.color,
+      });
     }
     onClose();
   };
@@ -73,6 +78,22 @@ export function CategoryForm({ onClose, categoryId }: CategoryFormProps) {
     { value: "gift", label: "Cadeau" },
     { value: "coffee", label: "Restaurant" },
     { value: "book", label: "Éducation" },
+    // Nouvelles icônes ajoutées
+    { value: "plane", label: "Voyages" },
+    { value: "music", label: "Musique" },
+    { value: "phone", label: "Téléphonie" },
+    { value: "wifi", label: "Internet" },
+    { value: "tv", label: "TV/Streaming" },
+    { value: "credit-card", label: "Carte bancaire" },
+    { value: "truck", label: "Livraison" },
+    { value: "umbrella", label: "Assurance" },
+    { value: "tag", label: "Shopping" },
+    { value: "calendar", label: "Abonnement" },
+    { value: "package", label: "Colis" },
+    { value: "globe", label: "International" },
+    { value: "smartphone", label: "Mobile" },
+    { value: "zap", label: "Électricité" },
+    { value: "smile", label: "Bien-être" },
   ];
 
   return (
@@ -117,7 +138,7 @@ export function CategoryForm({ onClose, categoryId }: CategoryFormProps) {
                           <SelectValue placeholder="Sélectionner une icône" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 overflow-y-auto">
                         {iconOptions.map(icon => (
                           <SelectItem key={icon.value} value={icon.value}>
                             {icon.label}

@@ -1,10 +1,23 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Car, Plane, Home } from "lucide-react";
+import { Car, Plane, Home, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 // Simulated savings goals data
-const goals = [
+const initialGoals = [
   {
     id: 1,
     name: "Vacances en Italie",
@@ -35,6 +48,32 @@ const goals = [
 ];
 
 export function SavingsGoals() {
+  const [goals, setGoals] = useState(initialGoals);
+  const [selectedGoal, setSelectedGoal] = useState<number | null>(null);
+  const [contribution, setContribution] = useState<number>(0);
+
+  const handleAddContribution = (goalId: number) => {
+    setGoals(currentGoals => 
+      currentGoals.map(goal => {
+        if (goal.id === goalId) {
+          const newCurrent = goal.current + contribution;
+          const newPercentage = Math.min(Math.round((newCurrent / goal.target) * 100), 100);
+          
+          return {
+            ...goal,
+            current: newCurrent,
+            percentage: newPercentage
+          };
+        }
+        return goal;
+      })
+    );
+
+    toast.success("Contribution ajoutée avec succès !");
+    setSelectedGoal(null);
+    setContribution(0);
+  };
+
   return (
     <Card className="animate-fade-in [animation-delay:600ms]">
       <CardHeader className="pb-2">
@@ -57,6 +96,14 @@ export function SavingsGoals() {
                     <div className="text-xs text-muted-foreground">Échéance: {goal.deadline}</div>
                   </div>
                 </div>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="h-6 w-6"
+                  onClick={() => setSelectedGoal(goal.id)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
               
               <div className="space-y-1">
@@ -72,6 +119,44 @@ export function SavingsGoals() {
           ))}
         </div>
       </CardContent>
+
+      <Dialog
+        open={selectedGoal !== null}
+        onOpenChange={(open) => !open && setSelectedGoal(null)}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Ajouter à l'objectif d'épargne</DialogTitle>
+            <DialogDescription>
+              Contribuez à votre objectif pour vous rapprocher de votre but.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="contribution" className="text-right">
+                Montant
+              </Label>
+              <Input
+                id="contribution"
+                type="number"
+                step="0.01"
+                min="0"
+                value={contribution}
+                onChange={(e) => setContribution(Number(e.target.value))}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedGoal(null)}>
+              Annuler
+            </Button>
+            <Button type="submit" onClick={() => selectedGoal && handleAddContribution(selectedGoal)}>
+              Ajouter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

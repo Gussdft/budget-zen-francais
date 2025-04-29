@@ -63,7 +63,13 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
     if (transactionId) {
       updateTransaction(transactionId, values);
     } else {
-      addTransaction(values);
+      addTransaction({
+        amount: values.amount,
+        date: values.date,
+        description: values.description,
+        categoryId: values.categoryId,
+        type: values.type,
+      });
     }
     onClose();
   };

@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Coffee, 
@@ -13,7 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useCategories } from "@/hooks/use-categories";
-import { useState } from "react";
+import { TransactionPopup } from "@/components/Transactions/TransactionPopup";
 
 // Map des icônes par défaut
 const defaultIcons: Record<string, any> = {
@@ -40,6 +41,7 @@ export function RecentTransactions() {
   const { transactions } = useTransactions();
   const { categories } = useCategories();
   const [limit] = useState(5);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   const getIconForCategory = (categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
@@ -77,6 +79,7 @@ export function RecentTransactions() {
                 <div 
                   key={transaction.id} 
                   className="flex items-center justify-between p-4 border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => setSelectedTransaction(transaction)}
                 >
                   <div className="flex items-center space-x-3">
                     <div className={`p-2 rounded-full ${transaction.type === 'income' ? 'bg-budget-success/10' : 'bg-muted/80'}`}>
@@ -101,6 +104,14 @@ export function RecentTransactions() {
           )}
         </div>
       </CardContent>
+
+      {selectedTransaction && (
+        <TransactionPopup
+          transaction={selectedTransaction}
+          open={!!selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
+        />
+      )}
     </Card>
   );
 }
