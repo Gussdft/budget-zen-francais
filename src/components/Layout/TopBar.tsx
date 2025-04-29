@@ -1,6 +1,7 @@
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Bell, MenuIcon, User } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Bell, LogOut, MenuIcon, User } from "lucide-react";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -10,11 +11,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { MobileMenu } from "./MobileMenu";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 export function TopBar() {
   const isMobile = useIsMobile();
+  const { userEmail, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
+  const handleLogout = () => {
+    logout();
+    toast.success("Déconnexion réussie");
+  };
+
   return (
     <header className="h-16 px-4 border-b border-border bg-background/95 backdrop-blur flex items-center justify-between">
       {isMobile && (
@@ -49,9 +58,17 @@ export function TopBar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Mon profil</DropdownMenuItem>
-            <DropdownMenuItem>Paramètres</DropdownMenuItem>
-            <DropdownMenuItem>Se déconnecter</DropdownMenuItem>
+            <DropdownMenuItem className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span>{userEmail ? userEmail : 'Mon profil'}</span>
+            </DropdownMenuItem>
+            <Link to="/parametres">
+              <DropdownMenuItem>Paramètres</DropdownMenuItem>
+            </Link>
+            <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 text-destructive">
+              <LogOut className="h-4 w-4" />
+              <span>Se déconnecter</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
