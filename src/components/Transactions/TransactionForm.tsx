@@ -168,15 +168,9 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le type">
                             {field.value === "income" ? (
-                              <div className="flex items-center gap-2">
-                                <ArrowUpRight className="h-4 w-4 text-budget-success" />
-                                <span>Revenu</span>
-                              </div>
+                              <ArrowUpRight className="h-4 w-4 text-budget-success" />
                             ) : (
-                              <div className="flex items-center gap-2">
-                                <ArrowDownRight className="h-4 w-4 text-budget-danger" />
-                                <span>Dépense</span>
-                              </div>
+                              <ArrowDownRight className="h-4 w-4 text-budget-danger" />
                             )}
                           </SelectValue>
                         </SelectTrigger>

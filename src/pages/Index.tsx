@@ -27,9 +27,7 @@ const Dashboard = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <BudgetProgress />
-          <div className="md:col-span-1">
-            <SavingsGoals />
-          </div>
+          <SavingsGoals />
         </div>
       </div>
     </MainLayout>

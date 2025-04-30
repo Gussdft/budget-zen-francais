@@ -17,10 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowDownRight, ArrowUpRight, Plus, X } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Plus, X, PiggyBank } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PiggyBank } from "lucide-react";
 
 // Définition du schéma pour les transactions rapides
 const quickTransactionSchema = z.object({
@@ -117,6 +116,7 @@ export function QuickTransactionEntry() {
     setIsSavingsGoal(false);
     
     toast.success("Transaction ajoutée avec succès");
+    setExpanded(false);  // Fermer le formulaire après l'ajout
   };
 
   if (!expanded) {
@@ -165,13 +165,9 @@ export function QuickTransactionEntry() {
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le type">
                             {field.value === "income" ? (
-                              <div className="flex items-center gap-2">
-                                <ArrowUpRight className="h-4 w-4 text-budget-success" />
-                              </div>
+                              <ArrowUpRight className="h-4 w-4 text-budget-success" />
                             ) : (
-                              <div className="flex items-center gap-2">
-                                <ArrowDownRight className="h-4 w-4 text-budget-danger" />
-                              </div>
+                              <ArrowDownRight className="h-4 w-4 text-budget-danger" />
                             )}
                           </SelectValue>
                         </SelectTrigger>

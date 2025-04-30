@@ -9,7 +9,7 @@ export type Transaction = {
   description: string;
   categoryId: string;
   type: "income" | "expense";
-  savingsGoalId?: string; // Ajout de l'ID de l'objectif d'épargne
+  savingsGoalId?: string;
 };
 
 export const useTransactions = () => {
@@ -143,20 +143,90 @@ export const useTransactions = () => {
         const goals = JSON.parse(storedGoals);
         const updatedGoals = goals.map((goal: any) => {
           if (goal.id === goalId) {
-            // Pour un revenu, on ajoute au montant actuel, pour une dépense, on soustrait
-            const adjustment = type === "income" ? amount : -amount;
+            // Pour une dépense (qui contribue à l'épargne), on ajoute au montant actuel
+            // Pour un revenu (retrait de l'épargne), on soustrait
+            const adjustment = type === "expense" ? amount : -amount;
+            
+            // S'assurer que le montant actuel ne dépasse pas le montant cible et ne devient pas négatif
+            const newAmount = Math.max(0, Math.min(goal.targetAmount, goal.currentAmount + adjustment));
+            
             return {
               ...goal,
-              currentAmount: Math.max(0, goal.currentAmount + adjustment)
+              currentAmount: newAmount
             };
           }
           return goal;
         });
         localStorage.setItem("savingsGoals", JSON.stringify(updatedGoals));
+        
+        // Notification de mise à jour réussie
+        const goalName = goals.find((g: any) => g.id === goalId)?.title;
+        if (goalName) {
+          toast.success(`Objectif "${goalName}" mis à jour avec succès`);
+        }
       }
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'objectif d'épargne:", error);
+      toast.error("Impossible de mettre à jour l'objectif d'épargne");
     }
+  };
+
+  // Calcul des statistiques mensuelles pour le tableau de bord
+  const getMonthlyStats = () => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    
+    // Filtrer les transactions du mois en cours
+    const monthlyTransactions = transactions.filter(t => 
+      t.date >= startOfMonth && t.date <= endOfMonth
+    );
+    
+    // Calculer les totaux
+    const totalIncome = monthlyTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const totalExpense = monthlyTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    // Calculer les pourcentages par rapport au mois précédent
+    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1);
+    const startOfPrevMonth = new Date(previousMonth.getFullYear(), previousMonth.getMonth(), 1).toISOString().split('T')[0];
+    const endOfPrevMonth = new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 0).toISOString().split('T')[0];
+    
+    const prevMonthTransactions = transactions.filter(t => 
+      t.date >= startOfPrevMonth && t.date <= endOfPrevMonth
+    );
+    
+    const prevMonthIncome = prevMonthTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const prevMonthExpense = prevMonthTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    // Calculer les variations en pourcentage
+    const incomeChange = prevMonthIncome ? ((totalIncome - prevMonthIncome) / prevMonthIncome) * 100 : 0;
+    const expenseChange = prevMonthExpense ? ((totalExpense - prevMonthExpense) / prevMonthExpense) * 100 : 0;
+    
+    return {
+      currentMonth: {
+        income: totalIncome,
+        expense: totalExpense,
+        balance: totalIncome - totalExpense
+      },
+      previousMonth: {
+        income: prevMonthIncome,
+        expense: prevMonthExpense
+      },
+      percentChange: {
+        income: parseFloat(incomeChange.toFixed(1)),
+        expense: parseFloat(expenseChange.toFixed(1))
+      }
+    };
   };
 
   return { 
@@ -164,6 +234,7 @@ export const useTransactions = () => {
     isLoading,
     addTransaction,
     updateTransaction,
-    deleteTransaction
+    deleteTransaction,
+    getMonthlyStats
   };
 };
