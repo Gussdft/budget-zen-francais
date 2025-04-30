@@ -9,20 +9,37 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   DollarSign,
-  CreditCard
+  CreditCard,
+  TrendingUp,
+  TrendingDown,
+  CircleDollarSign,
+  CircleMinus,
+  CirclePlus,
+  PiggyBank,
+  Briefcase,
+  Settings,
+  Category
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useCategories } from "@/hooks/use-categories";
 import { TransactionPopup } from "@/components/Transactions/TransactionPopup";
 
-// Map des icônes par défaut
-const defaultIcons: Record<string, any> = {
+// Map des icônes par défaut avec plus d'options
+const categoryIcons: Record<string, any> = {
   "Logement": Home,
   "Courses": ShoppingCart,
   "Restaurant": Coffee,
   "Revenus": ArrowUpRight,
   "Transport": Bus,
+  "Loisirs": PiggyBank,
+  "Santé": CirclePlus,
+  "Vacances": DollarSign,
+  "Salaire": TrendingUp,
+  "Investissement": Briefcase,
+  "Épargne": CircleDollarSign,
+  "Factures": CircleMinus,
+  "Autres": Category,
   "default": CreditCard
 };
 
@@ -45,10 +62,9 @@ export function RecentTransactions() {
 
   const getIconForCategory = (categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
-    if (!category) return defaultIcons["default"];
+    if (!category) return categoryIcons["default"];
     
-    // Si la catégorie a une icône spécifique, on pourrait l'utiliser ici
-    return defaultIcons[category.name] || defaultIcons["default"];
+    return categoryIcons[category.name] || categoryIcons["default"];
   };
 
   const getCategoryName = (categoryId: string) => {

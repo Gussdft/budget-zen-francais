@@ -18,8 +18,24 @@ import {
   Home, 
   ArrowUpRight, 
   ArrowDownRight,
-  CreditCard
+  CreditCard,
+  Coffee,
+  Bus,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  CircleDollarSign,
+  CircleMinus,
+  CirclePlus,
+  PiggyBank,
+  Briefcase,
+  Settings,
+  Plus,
+  Minus,
+  Edit,
+  Category
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface TransactionPopupProps {
   transaction: Transaction;
@@ -45,9 +61,32 @@ export function TransactionPopup({ transaction, open, onClose }: TransactionPopu
     onClose();
   };
 
-  // Par défaut, afficher l'icône CreditCard
-  const DefaultIcon = CreditCard;
+  // List of all available icons by category name mapping
+  const categoryIcons: Record<string, any> = {
+    "Logement": Home,
+    "Courses": ShoppingCart,
+    "Restaurant": Coffee,
+    "Revenus": ArrowUpRight,
+    "Transport": Bus,
+    "Loisirs": PiggyBank,
+    "Santé": CirclePlus,
+    "Vacances": DollarSign,
+    "Salaire": TrendingUp,
+    "Investissement": Briefcase,
+    "Épargne": CircleDollarSign,
+    "Factures": CircleMinus,
+    "Autres": Category,
+    "default": CreditCard
+  };
+
+  // Get the icon for the category or default
+  const getCategoryIcon = (categoryId: string) => {
+    const category = getCategoryName(categoryId);
+    return categoryIcons[category] || categoryIcons["default"];
+  };
+
   const TransactionIcon = transaction.type === 'income' ? ArrowUpRight : ArrowDownRight;
+  const CategoryIcon = getCategoryIcon(transaction.categoryId);
 
   if (isEditing) {
     return (
@@ -75,8 +114,9 @@ export function TransactionPopup({ transaction, open, onClose }: TransactionPopu
             </span>
             {transaction.description}
           </DialogTitle>
-          <DialogDescription>
-            {getCategoryName(transaction.categoryId)}
+          <DialogDescription className="flex items-center gap-2">
+            <CategoryIcon className="h-4 w-4 text-muted-foreground" />
+            <span>{getCategoryName(transaction.categoryId)}</span>
           </DialogDescription>
         </DialogHeader>
         
@@ -107,16 +147,20 @@ export function TransactionPopup({ transaction, open, onClose }: TransactionPopu
           </div>
         </div>
         
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose}>
-            Fermer
-          </Button>
-          <Button variant="default" onClick={() => setIsEditing(true)}>
-            Modifier
-          </Button>
-          <Button variant="destructive" onClick={handleDelete}>
-            Supprimer
-          </Button>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <div className="flex w-full flex-col-reverse sm:flex-row sm:justify-between">
+            <Button variant="destructive" onClick={handleDelete}>
+              Supprimer
+            </Button>
+            <div className="flex gap-2 mb-2 sm:mb-0">
+              <Button variant="outline" onClick={onClose}>
+                Fermer
+              </Button>
+              <Button variant="default" onClick={() => setIsEditing(true)}>
+                <Edit className="h-4 w-4 mr-2" /> Modifier
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

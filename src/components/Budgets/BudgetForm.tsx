@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -70,7 +69,16 @@ export function BudgetForm({ onClose, budgetId }: BudgetFormProps) {
 
   const onSubmit = (values: BudgetFormValues) => {
     if (budgetId) {
-      updateBudget(budgetId, values);
+      // Fix: Ensure all required properties are included
+      updateBudget(budgetId, {
+        name: values.name,
+        amount: values.amount,
+        categories: values.categories,
+        type: values.type,
+        startDate: values.startDate,
+        endDate: values.endDate,
+        isActive: values.isActive
+      });
     } else {
       addBudget(values);
     }

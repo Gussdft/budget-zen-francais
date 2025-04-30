@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -67,7 +66,17 @@ export function InvestmentForm({ onClose, investmentId }: InvestmentFormProps) {
 
   const onSubmit = (values: InvestmentFormValues) => {
     if (investmentId) {
-      updateInvestment(investmentId, values);
+      // Fix: Ensure all required properties are included
+      updateInvestment(investmentId, {
+        name: values.name,
+        type: values.type,
+        amount: values.amount,
+        quantity: values.quantity,
+        purchaseDate: values.purchaseDate,
+        currentValue: values.currentValue,
+        lastUpdate: values.lastUpdate,
+        notes: values.notes || "",
+      });
     } else {
       addInvestment(values);
     }
