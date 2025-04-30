@@ -21,13 +21,13 @@ import {
 import { X, ArrowDownRight, ArrowUpRight, PiggyBank } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// Importation simulée des objectifs d'épargne
-// Dans une application réelle, cela viendrait d'un hook comme useSavingsGoals
-const savingsGoals = [
-  { id: 1, name: "Vacances en Italie" },
-  { id: 2, name: "Achat voiture" },
-  { id: 3, name: "Apport immobilier" }
-];
+interface SavingsGoal {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline: string;
+}
 
 const transactionSchema = z.object({
   amount: z.coerce.number().min(0.01, "Le montant doit être supérieur à zéro"),
@@ -35,7 +35,7 @@ const transactionSchema = z.object({
   categoryId: z.string().min(1, "La catégorie est requise"),
   type: z.enum(["income", "expense"]),
   isSavingsGoal: z.boolean().optional(),
-  savingsGoalId: z.number().optional(),
+  savingsGoalId: z.string().optional(),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
@@ -49,6 +49,9 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
   const { categories } = useCategories();
   const { addTransaction, transactions, updateTransaction } = useTransactions();
   
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+  const [isLoadingGoals, setIsLoadingGoals] = useState(true);
+  
   const existingTransaction = transactionId 
     ? transactions.find(t => t.id === transactionId) 
     : undefined;
@@ -57,7 +60,28 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
     existingTransaction ? new Date(existingTransaction.date) : new Date()
   );
 
-  const [isSavingsGoal, setIsSavingsGoal] = useState(false);
+  const [isSavingsGoal, setIsSavingsGoal] = useState(
+    !!existingTransaction?.savingsGoalId
+  );
+
+  // Charger les objectifs d'épargne
+  useEffect(() => {
+    const loadSavingsGoals = () => {
+      setIsLoadingGoals(true);
+      try {
+        const storedGoals = localStorage.getItem("savingsGoals");
+        if (storedGoals) {
+          setSavingsGoals(JSON.parse(storedGoals));
+        }
+      } catch (error) {
+        console.error("Error loading savings goals:", error);
+      } finally {
+        setIsLoadingGoals(false);
+      }
+    };
+
+    loadSavingsGoals();
+  }, []);
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
@@ -66,7 +90,8 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
       description: existingTransaction.description,
       categoryId: existingTransaction.categoryId,
       type: existingTransaction.type,
-      isSavingsGoal: false,
+      isSavingsGoal: !!existingTransaction.savingsGoalId,
+      savingsGoalId: existingTransaction.savingsGoalId,
     } : {
       amount: 0,
       description: "",
@@ -79,35 +104,39 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
   // Mettre à jour la catégorie lorsque isSavingsGoal change
   useEffect(() => {
     if (isSavingsGoal) {
-      // Définir la catégorie sur "Épargne" si c'est un objectif d'épargne
-      form.setValue("categoryId", "cat-6"); // Supposons que cat-6 soit la catégorie "Épargne"
+      // Trouver la catégorie "Épargne" ou utiliser une catégorie par défaut
+      const savingsCategory = categories.find(c => c.name === "Épargne");
+      if (savingsCategory) {
+        form.setValue("categoryId", savingsCategory.id);
+      }
     }
-  }, [isSavingsGoal, form]);
+  }, [isSavingsGoal, categories, form]);
 
   const onSubmit = (values: TransactionFormValues) => {
     const formattedDate = date.toISOString().split('T')[0];
     
+    // Préparer les données de transaction
+    const transactionData = {
+      amount: values.amount,
+      date: formattedDate,
+      description: values.description,
+      categoryId: values.categoryId,
+      type: values.type,
+      savingsGoalId: values.isSavingsGoal ? values.savingsGoalId : undefined,
+    };
+    
     // Si c'est un objectif d'épargne, mettre à jour la description
     if (values.isSavingsGoal && values.savingsGoalId) {
-      const goalName = savingsGoals.find(g => g.id === values.savingsGoalId)?.name;
+      const goalName = savingsGoals.find(g => g.id === values.savingsGoalId)?.title;
       if (goalName) {
-        values.description = `${values.type === 'expense' ? 'Contribution à' : 'Retrait de'} l'objectif: ${goalName}`;
+        transactionData.description = `${values.type === 'expense' ? 'Contribution à' : 'Retrait de'} l'objectif: ${goalName}`;
       }
     }
     
     if (transactionId) {
-      updateTransaction(transactionId, {
-        ...values,
-        date: formattedDate,
-      });
+      updateTransaction(transactionId, transactionData);
     } else {
-      addTransaction({
-        amount: values.amount,
-        date: formattedDate,
-        description: values.description,
-        categoryId: values.categoryId,
-        type: values.type,
-      });
+      addTransaction(transactionData);
     }
     onClose();
   };
@@ -137,7 +166,19 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner le type" />
+                          <SelectValue placeholder="Sélectionner le type">
+                            {field.value === "income" ? (
+                              <div className="flex items-center gap-2">
+                                <ArrowUpRight className="h-4 w-4 text-budget-success" />
+                                <span>Revenu</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <ArrowDownRight className="h-4 w-4 text-budget-danger" />
+                                <span>Dépense</span>
+                              </div>
+                            )}
+                          </SelectValue>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -187,6 +228,9 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
                 onCheckedChange={(checked) => {
                   setIsSavingsGoal(checked === true);
                   form.setValue("isSavingsGoal", checked === true);
+                  if (!checked) {
+                    form.setValue("savingsGoalId", undefined);
+                  }
                 }}
               />
               <label
@@ -205,8 +249,8 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
                   <FormItem>
                     <FormLabel>Objectif d'épargne</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      defaultValue={field.value?.toString()}
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -214,11 +258,17 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {savingsGoals.map((goal) => (
-                          <SelectItem key={goal.id} value={goal.id.toString()}>
-                            {goal.name}
+                        {savingsGoals.length > 0 ? (
+                          savingsGoals.map((goal) => (
+                            <SelectItem key={goal.id} value={goal.id}>
+                              {goal.title}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>
+                            Aucun objectif d'épargne disponible
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -238,7 +288,6 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
                       <Select 
                         onValueChange={field.onChange} 
                         defaultValue={field.value}
-                        disabled={isSavingsGoal}
                       >
                         <FormControl>
                           <SelectTrigger>

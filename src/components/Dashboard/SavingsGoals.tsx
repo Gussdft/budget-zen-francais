@@ -1,7 +1,7 @@
-// Fix for the Progress component props error
+
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
+import { Sparkles, PiggyBank } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface SavingsGoal {
@@ -83,7 +83,7 @@ const SavingsGoals = () => {
     }).format(amount);
   };
 
-  const getColorScheme = (progress: number) => {
+  const getColorClass = (progress: number) => {
     if (progress < 30) return "bg-red-500";
     if (progress < 70) return "bg-amber-500";
     return "bg-green-500";
@@ -93,46 +93,52 @@ const SavingsGoals = () => {
     return <p>Chargement des objectifs d'épargne...</p>;
   }
 
+  // Added card wrapper for consistent styling
   return (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-      {savingsGoals.map((goal) => {
-        const progress = calculateProgress(goal);
-        const colorScheme = getColorScheme(progress);
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <PiggyBank className="h-5 w-5" />
+          Objectifs d'épargne
+        </CardTitle>
+        <CardDescription>Suivez vos progrès vers vos objectifs financiers</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {savingsGoals.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Aucun objectif d'épargne défini</p>
+          ) : (
+            savingsGoals.map((goal) => {
+              const progress = calculateProgress(goal);
+              const colorClass = getColorClass(progress);
 
-        return (
-          <Card key={goal.id}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle>{goal.title}</CardTitle>
-                <Sparkles className="h-5 w-5 text-amber-500" />
-              </div>
-              <CardDescription>
-                Deadline: {formatDate(goal.deadline)}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Objectif:</span>
-                  <span>{formatCurrency(goal.targetAmount)}</span>
+              return (
+                <div key={goal.id} className="border rounded-md p-4 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-medium">{goal.title}</h3>
+                    <Sparkles className="h-4 w-4 text-amber-500" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Échéance: {formatDate(goal.deadline)}
+                  </p>
+                  <div className="flex justify-between text-sm">
+                    <span>Progression:</span>
+                    <span>
+                      {formatCurrency(goal.currentAmount)} / {formatCurrency(goal.targetAmount)}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={progress} 
+                    className="h-2"
+                  />
+                  <div className="text-right text-xs">{Math.round(progress)}%</div>
                 </div>
-                <div className="flex justify-between">
-                  <span>Épargné:</span>
-                  <span>{formatCurrency(goal.currentAmount)}</span>
-                </div>
-                <Progress 
-                  value={progress} 
-                  max={100} 
-                  className={`${colorScheme}30`}
-                  // Remove indicatorClassName and indicatorStyle props
-                />
-                <div className="text-right text-sm">{Math.round(progress)}%</div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+              );
+            })
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

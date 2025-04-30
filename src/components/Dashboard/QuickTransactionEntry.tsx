@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,23 +17,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowDownRight, ArrowUpRight, Plus } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PiggyBank } from "lucide-react";
 
+// Définition du schéma pour les transactions rapides
 const quickTransactionSchema = z.object({
   amount: z.coerce.number().min(0.01, "Le montant doit être supérieur à zéro"),
   description: z.string().min(1, "La description est requise"),
   categoryId: z.string().min(1, "La catégorie est requise"),
   type: z.enum(["income", "expense"]),
+  isSavingsGoal: z.boolean().optional(),
+  savingsGoalId: z.string().optional(),
 });
 
 type QuickTransactionValues = z.infer<typeof quickTransactionSchema>;
+
+interface SavingsGoal {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline: string;
+}
 
 export function QuickTransactionEntry() {
   const { addTransaction } = useTransactions();
   const { categories } = useCategories();
   const [date, setDate] = useState<Date>(new Date());
   const [expanded, setExpanded] = useState(false);
+  const [isSavingsGoal, setIsSavingsGoal] = useState(false);
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+
+  // Charger les objectifs d'épargne
+  useEffect(() => {
+    if (expanded) {
+      try {
+        const storedGoals = localStorage.getItem("savingsGoals");
+        if (storedGoals) {
+          setSavingsGoals(JSON.parse(storedGoals));
+        }
+      } catch (error) {
+        console.error("Error loading savings goals:", error);
+      }
+    }
+  }, [expanded]);
 
   const form = useForm<QuickTransactionValues>({
     resolver: zodResolver(quickTransactionSchema),
@@ -42,17 +71,40 @@ export function QuickTransactionEntry() {
       description: "",
       categoryId: "",
       type: "expense",
+      isSavingsGoal: false,
     },
   });
 
+  // Mettre à jour la catégorie lorsque isSavingsGoal change
+  useEffect(() => {
+    if (isSavingsGoal) {
+      // Trouver la catégorie "Épargne" ou utiliser une catégorie par défaut
+      const savingsCategory = categories.find(c => c.name === "Épargne");
+      if (savingsCategory) {
+        form.setValue("categoryId", savingsCategory.id);
+      }
+    }
+  }, [isSavingsGoal, categories, form]);
+
   const onSubmit = (values: QuickTransactionValues) => {
-    addTransaction({
+    const transactionData = {
       amount: values.amount,
       date: date.toISOString().split('T')[0],
       description: values.description,
       categoryId: values.categoryId,
       type: values.type,
-    });
+      savingsGoalId: values.isSavingsGoal ? values.savingsGoalId : undefined,
+    };
+
+    // Si c'est un objectif d'épargne, mettre à jour la description
+    if (values.isSavingsGoal && values.savingsGoalId) {
+      const goalName = savingsGoals.find(g => g.id === values.savingsGoalId)?.title;
+      if (goalName) {
+        transactionData.description = `${values.type === 'expense' ? 'Contribution à' : 'Retrait de'} l'objectif: ${goalName}`;
+      }
+    }
+
+    addTransaction(transactionData);
 
     // Réinitialiser le formulaire
     form.reset({
@@ -60,7 +112,9 @@ export function QuickTransactionEntry() {
       description: "",
       categoryId: "",
       type: "expense",
+      isSavingsGoal: false,
     });
+    setIsSavingsGoal(false);
     
     toast.success("Transaction ajoutée avec succès");
   };
@@ -88,7 +142,7 @@ export function QuickTransactionEntry() {
             size="icon" 
             onClick={() => setExpanded(false)}
           >
-            x
+            <X className="h-4 w-4" />
           </Button>
         </CardTitle>
       </CardHeader>
@@ -109,7 +163,17 @@ export function QuickTransactionEntry() {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner le type" />
+                          <SelectValue placeholder="Sélectionner le type">
+                            {field.value === "income" ? (
+                              <div className="flex items-center gap-2">
+                                <ArrowUpRight className="h-4 w-4 text-budget-success" />
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <ArrowDownRight className="h-4 w-4 text-budget-danger" />
+                              </div>
+                            )}
+                          </SelectValue>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -147,46 +211,52 @@ export function QuickTransactionEntry() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Description" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="quickIsSavingsGoal" 
+                checked={isSavingsGoal}
+                onCheckedChange={(checked) => {
+                  setIsSavingsGoal(checked === true);
+                  form.setValue("isSavingsGoal", checked === true);
+                  if (!checked) {
+                    form.setValue("savingsGoalId", undefined);
+                  }
+                }}
               />
+              <label
+                htmlFor="quickIsSavingsGoal"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1"
+              >
+                <PiggyBank className="h-4 w-4" /> Transaction liée à un objectif d'épargne
+              </label>
+            </div>
 
+            {isSavingsGoal ? (
               <FormField
                 control={form.control}
-                name="categoryId"
+                name="savingsGoalId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Catégorie</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <FormLabel>Objectif d'épargne</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une catégorie" />
+                          <SelectValue placeholder="Sélectionner un objectif" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories.length > 0 ? (
-                          categories.map(category => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
+                        {savingsGoals.length > 0 ? (
+                          savingsGoals.map((goal) => (
+                            <SelectItem key={goal.id} value={goal.id}>
+                              {goal.title}
                             </SelectItem>
                           ))
                         ) : (
-                          <SelectItem value="default" disabled>
-                            Aucune catégorie disponible
+                          <SelectItem value="" disabled>
+                            Aucun objectif d'épargne disponible
                           </SelectItem>
                         )}
                       </SelectContent>
@@ -195,7 +265,59 @@ export function QuickTransactionEntry() {
                   </FormItem>
                 )}
               />
-            </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Description" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="categoryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Catégorie</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionner une catégorie" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categories.length > 0 ? (
+                              categories.map(category => (
+                                <SelectItem key={category.id} value={category.id}>
+                                  {category.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="default" disabled>
+                                Aucune catégorie disponible
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </>
+            )}
 
             <div>
               <FormLabel>Date</FormLabel>
