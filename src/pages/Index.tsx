@@ -3,7 +3,7 @@ import { BalanceSummary } from "@/components/Dashboard/BalanceSummary";
 import { BudgetProgress } from "@/components/Dashboard/BudgetProgress";
 import { ExpensesChart } from "@/components/Dashboard/ExpensesChart";
 import { RecentTransactions } from "@/components/Dashboard/RecentTransactions";
-import { SavingsGoals } from "@/components/Dashboard/SavingsGoals";
+import SavingsGoals from "@/components/Dashboard/SavingsGoals";
 import { QuickTransactionEntry } from "@/components/Dashboard/QuickTransactionEntry";
 import { MainLayout } from "@/components/Layout/MainLayout";
 
