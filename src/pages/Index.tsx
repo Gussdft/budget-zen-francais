@@ -11,13 +11,20 @@ const Dashboard = () => {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-semibold">Tableau de bord</h1>
+        <h1 className="text-3xl font-semibold mb-6">Tableau de bord</h1>
+        
         <BalanceSummary />
-        <QuickTransactionEntry />
+        
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 mb-4 border border-border">
+          <h2 className="text-lg font-medium mb-2">Ajout rapide de transaction</h2>
+          <QuickTransactionEntry />
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <ExpensesChart />
           <RecentTransactions />
         </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <BudgetProgress />
           <SavingsGoals />

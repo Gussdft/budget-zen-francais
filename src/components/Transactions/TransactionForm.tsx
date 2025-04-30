@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,13 +18,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { X, ArrowDownRight, ArrowUpRight, PiggyBank } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+
+// Importation simulée des objectifs d'épargne
+// Dans une application réelle, cela viendrait d'un hook comme useSavingsGoals
+const savingsGoals = [
+  { id: 1, name: "Vacances en Italie" },
+  { id: 2, name: "Achat voiture" },
+  { id: 3, name: "Apport immobilier" }
+];
 
 const transactionSchema = z.object({
   amount: z.coerce.number().min(0.01, "Le montant doit être supérieur à zéro"),
   description: z.string().min(1, "La description est requise"),
   categoryId: z.string().min(1, "La catégorie est requise"),
   type: z.enum(["income", "expense"]),
+  isSavingsGoal: z.boolean().optional(),
+  savingsGoalId: z.number().optional(),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
@@ -46,6 +57,8 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
     existingTransaction ? new Date(existingTransaction.date) : new Date()
   );
 
+  const [isSavingsGoal, setIsSavingsGoal] = useState(false);
+
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: existingTransaction ? {
@@ -53,16 +66,34 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
       description: existingTransaction.description,
       categoryId: existingTransaction.categoryId,
       type: existingTransaction.type,
+      isSavingsGoal: false,
     } : {
       amount: 0,
       description: "",
       categoryId: "",
       type: "expense",
+      isSavingsGoal: false,
     }
   });
 
+  // Mettre à jour la catégorie lorsque isSavingsGoal change
+  useEffect(() => {
+    if (isSavingsGoal) {
+      // Définir la catégorie sur "Épargne" si c'est un objectif d'épargne
+      form.setValue("categoryId", "cat-6"); // Supposons que cat-6 soit la catégorie "Épargne"
+    }
+  }, [isSavingsGoal, form]);
+
   const onSubmit = (values: TransactionFormValues) => {
     const formattedDate = date.toISOString().split('T')[0];
+    
+    // Si c'est un objectif d'épargne, mettre à jour la description
+    if (values.isSavingsGoal && values.savingsGoalId) {
+      const goalName = savingsGoals.find(g => g.id === values.savingsGoalId)?.name;
+      if (goalName) {
+        values.description = `${values.type === 'expense' ? 'Contribution à' : 'Retrait de'} l'objectif: ${goalName}`;
+      }
+    }
     
     if (transactionId) {
       updateTransaction(transactionId, {
@@ -149,55 +180,107 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
               <DatePicker date={date} setDate={(newDate) => newDate && setDate(newDate)} />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="isSavingsGoal" 
+                checked={isSavingsGoal}
+                onCheckedChange={(checked) => {
+                  setIsSavingsGoal(checked === true);
+                  form.setValue("isSavingsGoal", checked === true);
+                }}
+              />
+              <label
+                htmlFor="isSavingsGoal"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1"
+              >
+                <PiggyBank className="h-4 w-4" /> Transaction liée à un objectif d'épargne
+              </label>
+            </div>
+
+            {isSavingsGoal && (
               <FormField
                 control={form.control}
-                name="categoryId"
+                name="savingsGoalId"
                 render={({ field }) => (
-                  <FormItem className="col-span-1">
-                    <FormLabel>Catégorie</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
+                  <FormItem>
+                    <FormLabel>Objectif d'épargne</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      defaultValue={field.value?.toString()}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une catégorie" />
+                          <SelectValue placeholder="Sélectionner un objectif" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories.length > 0 ? (
-                          categories.map(category => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="default" disabled>
-                            Aucune catégorie disponible
+                        {savingsGoals.map((goal) => (
+                          <SelectItem key={goal.id} value={goal.id.toString()}>
+                            {goal.name}
                           </SelectItem>
-                        )}
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
+            )}
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isSavingsGoal && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem className="col-span-1">
+                      <FormLabel>Catégorie</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                        disabled={isSavingsGoal}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner une catégorie" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categories.length > 0 ? (
+                            categories.map(category => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="default" disabled>
+                              Aucune catégorie disponible
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {!isSavingsGoal && (
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </CardContent>
           
           <CardFooter className="flex justify-end gap-2">
