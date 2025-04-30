@@ -19,7 +19,7 @@ const Parametres = () => {
       <div className="space-y-6">
         <h1 className="text-3xl font-semibold">Paramètres</h1>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3 md:w-auto">
             <TabsTrigger value="profile">Profil</TabsTrigger>
             <TabsTrigger value="display">Affichage</TabsTrigger>

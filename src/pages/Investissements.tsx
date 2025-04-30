@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/Layout/MainLayout";
 import { InvestmentsList } from "@/components/Investments/InvestmentsList";
-import { InvestmentForm } from "@/components/Investments/InvestmentFormWrapper";
+import { InvestmentFormWrapper } from "@/components/Investments/InvestmentFormWrapper";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, TrendingUp, PieChart, LineChart, Sparkles } from "lucide-react";
 import { useInvestments } from "@/hooks/use-investments";
@@ -66,7 +66,7 @@ const Investissements = () => {
           </Button>
         </div>
         
-        <Tabs defaultValue="liste" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-4">
             <TabsList>
               <TabsTrigger value="liste">Liste</TabsTrigger>
@@ -77,7 +77,7 @@ const Investissements = () => {
           
           <TabsContent value="liste" className="space-y-4">
             {showForm && (
-              <InvestmentForm onClose={() => setShowForm(false)} />
+              <InvestmentFormWrapper onClose={() => setShowForm(false)} />
             )}
             
             {isLoading ? (

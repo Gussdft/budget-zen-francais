@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/Layout/MainLayout";
 import { BudgetsList } from "@/components/Budgets/BudgetsList";
-import { BudgetForm } from "@/components/Budgets/BudgetFormWrapper";
+import { BudgetFormWrapper } from "@/components/Budgets/BudgetFormWrapper";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, BarChart3, LineChart, TrendingUp } from "lucide-react";
 import { useBudgets } from "@/hooks/use-budgets";
@@ -51,7 +51,7 @@ const Budgets = () => {
           </Button>
         </div>
         
-        <Tabs defaultValue="liste" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-4">
             <TabsList>
               <TabsTrigger value="liste">Liste</TabsTrigger>
@@ -62,7 +62,7 @@ const Budgets = () => {
           
           <TabsContent value="liste" className="space-y-4">
             {showForm && (
-              <BudgetForm onClose={() => setShowForm(false)} />
+              <BudgetFormWrapper onClose={() => setShowForm(false)} />
             )}
             
             {isLoading ? (
