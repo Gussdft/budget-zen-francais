@@ -1,3 +1,4 @@
+
 import React from "react";
 import { InvestmentFormWrapper } from "./InvestmentFormWrapper";
 
@@ -18,6 +19,12 @@ export const InvestmentsList = () => {
     { id: "3", name: "Real Estate Fund", type: "REIT", amount: 10000 },
   ];
 
+  // Adding onClose handler for the InvestmentFormWrapper
+  const handleFormClose = () => {
+    console.log("Investment form closed");
+    // Add additional logic as needed
+  };
+
   return (
     <div>
       <h2>Your Investments</h2>
@@ -28,7 +35,7 @@ export const InvestmentsList = () => {
           </li>
         ))}
       </ul>
-      <InvestmentFormWrapper />
+      <InvestmentFormWrapper onClose={handleFormClose} />
     </div>
   );
 };

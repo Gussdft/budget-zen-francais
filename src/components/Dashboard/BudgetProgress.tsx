@@ -4,7 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { useBudgets } from "@/hooks/use-budgets";
 import { useCategories } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
-import { Plus, PieChart, BarChart4, ArrowUpRight, AlertCircle } from "lucide-react";
+import { Plus, BarChart4, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { 
   Dialog,
@@ -18,7 +18,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 export function BudgetProgress() {
   const { budgets, calculateBudgetProgress, updateBudget } = useBudgets();
@@ -84,94 +83,95 @@ export function BudgetProgress() {
             <p className="text-sm mt-1">Créez un budget dans l'onglet "Budgets & Projets"</p>
           </div>
         ) : (
-          <TabsContent value="list" className="mt-0">
-            <div className="space-y-4">
-              <div className="rounded-md bg-muted p-3 mb-2">
-                <p className="text-sm">
-                  Les budgets vous permettent de suivre et contrôler vos dépenses par catégorie. 
-                  Ils vous aident à rester dans les limites que vous vous êtes fixées.
-                </p>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsContent value="list" className="mt-0">
+              <div className="space-y-4">
+                <div className="rounded-md bg-muted p-3 mb-2">
+                  <p className="text-sm">
+                    Les budgets vous permettent de suivre et contrôler vos dépenses par catégorie. 
+                    Ils vous aident à rester dans les limites que vous vous êtes fixées.
+                  </p>
+                </div>
+                {activeBudgets.slice(0, 4).map((budget) => {
+                  const progress = calculateBudgetProgress(budget.id);
+                  const statusColorClass = 
+                    progress.percentage > 100 ? "bg-budget-danger" : 
+                    progress.percentage > 80 ? "bg-yellow-500" : 
+                    "bg-budget-success";
+
+                  return (
+                    <div key={budget.id} className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <div className="font-medium">
+                          {budget.name}
+                          <span className="text-xs ml-2 text-muted-foreground">
+                            ({budget.categories.map(getCategoryName).join(', ')})
+                          </span>
+                        </div>
+                        <div className="text-muted-foreground flex items-center gap-2">
+                          <span>{formatAmount(progress.spent)} / {formatAmount(budget.amount)}</span>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-4 w-4 rounded-full"
+                            onClick={() => setSelectedBudget(budget.id)}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <Progress 
+                        value={progress.percentage} 
+                        max={100} 
+                        className={`${statusColorClass}`}
+                      />
+                      {progress.percentage > 100 && (
+                        <div className="text-xs text-budget-danger">
+                          Budget dépassé de {(progress.percentage - 100).toFixed(0)}%
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                        <span>Prévu: {formatAmount(budget.amount)}</span>
+                        <span>Restant: {formatAmount(progress.remaining)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              {activeBudgets.slice(0, 4).map((budget) => {
-                const progress = calculateBudgetProgress(budget.id);
-                const statusColorClass = 
-                  progress.percentage > 100 ? "bg-budget-danger" : 
-                  progress.percentage > 80 ? "bg-yellow-500" : 
-                  "bg-budget-success";
-
-                return (
-                  <div key={budget.id} className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <div className="font-medium">
-                        {budget.name}
-                        <span className="text-xs ml-2 text-muted-foreground">
-                          ({budget.categories.map(getCategoryName).join(', ')})
-                        </span>
-                      </div>
-                      <div className="text-muted-foreground flex items-center gap-2">
-                        <span>{formatAmount(progress.spent)} / {formatAmount(budget.amount)}</span>
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          className="h-4 w-4 rounded-full"
-                          onClick={() => setSelectedBudget(budget.id)}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <Progress 
-                      value={progress.percentage} 
-                      max={100} 
-                      className={`${statusColorClass}`}
-                    />
-                    {progress.percentage > 100 && (
-                      <div className="text-xs text-budget-danger">
-                        Budget dépassé de {(progress.percentage - 100).toFixed(0)}%
-                      </div>
-                    )}
-                    <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
-                      <span>Prévu: {formatAmount(budget.amount)}</span>
-                      <span>Restant: {formatAmount(progress.remaining)}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </TabsContent>
+            </TabsContent>
+            <TabsContent value="chart" className="mt-0">
+              {activeBudgets.length > 0 ? (
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={chartData}
+                      margin={{
+                        top: 5,
+                        right: 10,
+                        left: 10,
+                        bottom: 5,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip 
+                        formatter={(value) => `${value} €`}
+                        labelFormatter={(label) => `Budget: ${label}`}
+                      />
+                      <Bar dataKey="alloué" fill="#9b87f5" name="Montant alloué" />
+                      <Bar dataKey="dépensé" fill="#FC8181" name="Montant dépensé" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="p-4 text-center text-muted-foreground">
+                  Aucun budget à afficher
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
-
-        <TabsContent value="chart" className="mt-0">
-          {activeBudgets.length > 0 ? (
-            <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={chartData}
-                  margin={{
-                    top: 5,
-                    right: 10,
-                    left: 10,
-                    bottom: 5,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value) => `${value} €`}
-                    labelFormatter={(label) => `Budget: ${label}`}
-                  />
-                  <Bar dataKey="alloué" fill="#9b87f5" name="Montant alloué" />
-                  <Bar dataKey="dépensé" fill="#FC8181" name="Montant dépensé" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="p-4 text-center text-muted-foreground">
-              Aucun budget à afficher
-            </div>
-          )}
-        </TabsContent>
 
         <Dialog
           open={selectedBudget !== null}
