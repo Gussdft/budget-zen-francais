@@ -29,7 +29,8 @@ interface InvestmentFormProps {
   onClose: () => void;
 }
 
-export function InvestmentForm({ investmentId, onClose }: InvestmentFormProps) {
+// Export with the name InvestmentFormWrapper to match the import in other files
+export function InvestmentFormWrapper({ investmentId, onClose }: InvestmentFormProps) {
   const { addInvestment, updateInvestment, investments } = useInvestments();
   
   // Si un ID est fourni, charger les données de l'investissement existant, sinon utiliser les valeurs par défaut

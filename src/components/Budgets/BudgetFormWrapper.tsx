@@ -32,7 +32,8 @@ interface BudgetFormProps {
   onClose: () => void;
 }
 
-export function BudgetForm({ budgetId, onClose }: BudgetFormProps) {
+// Export with the name BudgetFormWrapper to match the import in other files
+export function BudgetFormWrapper({ budgetId, onClose }: BudgetFormProps) {
   const { addBudget, updateBudget, budgets } = useBudgets();
   const { categories } = useCategories();
   

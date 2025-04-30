@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MainLayout } from "@/components/Layout/MainLayout";
 import { BudgetsList } from "@/components/Budgets/BudgetsList";
