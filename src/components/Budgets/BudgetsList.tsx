@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Edit, Trash2 } from "lucide-react";
 import { Budget, useBudgets } from "@/hooks/use-budgets";
-import { BudgetForm } from "./BudgetForm";
+import { BudgetForm } from "./BudgetFormWrapper";
 import { useCategories } from "@/hooks/use-categories";
 import {
   AlertDialog,

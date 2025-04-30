@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, TrendingDown, TrendingUp } from "lucide-react";
 import { Investment, useInvestments } from "@/hooks/use-investments";
-import { InvestmentForm } from "./InvestmentForm";
+import { InvestmentForm } from "./InvestmentFormWrapper";
 import {
   AlertDialog,
   AlertDialogAction,

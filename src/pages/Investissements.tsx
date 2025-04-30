@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/Layout/MainLayout";
 import { InvestmentsList } from "@/components/Investments/InvestmentsList";
-import { InvestmentForm } from "@/components/Investments/InvestmentForm";
+import { InvestmentForm } from "@/components/Investments/InvestmentFormWrapper";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useInvestments } from "@/hooks/use-investments";

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/Layout/MainLayout";
 import { BudgetsList } from "@/components/Budgets/BudgetsList";
-import { BudgetForm } from "@/components/Budgets/BudgetForm";
+import { BudgetForm } from "@/components/Budgets/BudgetFormWrapper";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useBudgets } from "@/hooks/use-budgets";
