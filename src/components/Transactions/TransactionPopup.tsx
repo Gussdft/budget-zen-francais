@@ -33,7 +33,7 @@ import {
   Plus,
   Minus,
   Edit,
-  Category
+  Tags
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -75,7 +75,7 @@ export function TransactionPopup({ transaction, open, onClose }: TransactionPopu
     "Investissement": Briefcase,
     "Épargne": CircleDollarSign,
     "Factures": CircleMinus,
-    "Autres": Category,
+    "Autres": Tags,
     "default": CreditCard
   };
 

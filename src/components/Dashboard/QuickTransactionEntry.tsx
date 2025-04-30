@@ -3,13 +3,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTransactions } from "@/hooks/use-transactions";
+import { useCategories } from "@/hooks/use-categories";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useCategories } from "@/hooks/use-categories";
-import { useTransactions } from "@/hooks/use-transactions";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
@@ -18,76 +17,80 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Plus } from "lucide-react";
+import { toast } from "sonner";
 
-const transactionSchema = z.object({
+const quickTransactionSchema = z.object({
   amount: z.coerce.number().min(0.01, "Le montant doit être supérieur à zéro"),
   description: z.string().min(1, "La description est requise"),
   categoryId: z.string().min(1, "La catégorie est requise"),
   type: z.enum(["income", "expense"]),
 });
 
-type TransactionFormValues = z.infer<typeof transactionSchema>;
+type QuickTransactionValues = z.infer<typeof quickTransactionSchema>;
 
-interface TransactionFormProps {
-  onClose: () => void;
-  transactionId?: string;
-}
-
-export function TransactionForm({ onClose, transactionId }: TransactionFormProps) {
+export function QuickTransactionEntry() {
+  const { addTransaction } = useTransactions();
   const { categories } = useCategories();
-  const { addTransaction, transactions, updateTransaction } = useTransactions();
-  
-  const existingTransaction = transactionId 
-    ? transactions.find(t => t.id === transactionId) 
-    : undefined;
+  const [date, setDate] = useState<Date>(new Date());
+  const [expanded, setExpanded] = useState(false);
 
-  const [date, setDate] = useState<Date>(
-    existingTransaction ? new Date(existingTransaction.date) : new Date()
-  );
-
-  const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema),
-    defaultValues: existingTransaction ? {
-      amount: existingTransaction.amount,
-      description: existingTransaction.description,
-      categoryId: existingTransaction.categoryId,
-      type: existingTransaction.type,
-    } : {
+  const form = useForm<QuickTransactionValues>({
+    resolver: zodResolver(quickTransactionSchema),
+    defaultValues: {
       amount: 0,
       description: "",
       categoryId: "",
       type: "expense",
-    }
+    },
   });
 
-  const onSubmit = (values: TransactionFormValues) => {
-    const formattedDate = date.toISOString().split('T')[0];
+  const onSubmit = (values: QuickTransactionValues) => {
+    addTransaction({
+      amount: values.amount,
+      date: date.toISOString().split('T')[0],
+      description: values.description,
+      categoryId: values.categoryId,
+      type: values.type,
+    });
+
+    // Réinitialiser le formulaire
+    form.reset({
+      amount: 0,
+      description: "",
+      categoryId: "",
+      type: "expense",
+    });
     
-    if (transactionId) {
-      updateTransaction(transactionId, {
-        ...values,
-        date: formattedDate,
-      });
-    } else {
-      addTransaction({
-        amount: values.amount,
-        date: formattedDate,
-        description: values.description,
-        categoryId: values.categoryId,
-        type: values.type,
-      });
-    }
-    onClose();
+    toast.success("Transaction ajoutée avec succès");
   };
 
+  if (!expanded) {
+    return (
+      <Button 
+        onClick={() => setExpanded(true)} 
+        className="w-full flex items-center gap-2 mb-4"
+        variant="outline"
+      >
+        <Plus size={18} />
+        Ajouter une transaction rapide
+      </Button>
+    );
+  }
+
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{transactionId ? "Modifier la transaction" : "Nouvelle transaction"}</CardTitle>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-5 w-5" />
-        </Button>
+    <Card className="mb-6">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg flex items-center justify-between">
+          <span>Nouvelle transaction</span>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setExpanded(false)}
+          >
+            x
+          </Button>
+        </CardTitle>
       </CardHeader>
       
       <Form {...form}>
@@ -144,17 +147,26 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
               />
             </div>
 
-            <div>
-              <FormLabel>Date</FormLabel>
-              <DatePicker date={date} setDate={(newDate) => newDate && setDate(newDate)} />
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Description" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="categoryId"
                 render={({ field }) => (
-                  <FormItem className="col-span-1">
+                  <FormItem>
                     <FormLabel>Catégorie</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
@@ -185,27 +197,18 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormLabel>Date</FormLabel>
+              <DatePicker date={date} setDate={(newDate) => newDate && setDate(newDate)} />
+            </div>
           </CardContent>
           
           <CardFooter className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={() => setExpanded(false)}>
               Annuler
             </Button>
             <Button type="submit">
-              {transactionId ? "Mettre à jour" : "Ajouter"}
+              Ajouter
             </Button>
           </CardFooter>
         </form>

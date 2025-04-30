@@ -18,7 +18,7 @@ import {
   PiggyBank,
   Briefcase,
   Settings,
-  Category
+  Tags
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTransactions } from "@/hooks/use-transactions";
@@ -39,7 +39,7 @@ const categoryIcons: Record<string, any> = {
   "Investissement": Briefcase,
   "Épargne": CircleDollarSign,
   "Factures": CircleMinus,
-  "Autres": Category,
+  "Autres": Tags,
   "default": CreditCard
 };
 
