@@ -87,7 +87,7 @@ export function QuickTransactionEntry() {
 
   const onSubmit = (values: QuickTransactionValues) => {
     const transactionData = {
-      amount: values.amount,
+      amount: parseFloat(values.amount.toFixed(2)),
       date: date.toISOString().split('T')[0],
       description: values.description,
       categoryId: values.categoryId,
@@ -123,8 +123,8 @@ export function QuickTransactionEntry() {
     return (
       <Button 
         onClick={() => setExpanded(true)} 
-        className="w-full flex items-center gap-2 mb-4"
-        variant="outline"
+        className="w-full flex items-center gap-2 mb-4 bg-gradient-to-r from-primary/80 to-primary hover:from-primary hover:to-primary/80 shadow-sm"
+        variant="default"
       >
         <Plus size={18} />
         Ajouter une transaction rapide
@@ -133,8 +133,8 @@ export function QuickTransactionEntry() {
   }
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-2">
+    <Card className="mb-6 border border-border shadow-md">
+      <CardHeader className="pb-2 bg-muted/30">
         <CardTitle className="text-lg flex items-center justify-between">
           <span>Nouvelle transaction</span>
           <Button 
@@ -149,7 +149,7 @@ export function QuickTransactionEntry() {
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -162,12 +162,18 @@ export function QuickTransactionEntry() {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="flex items-center gap-2">
                           <SelectValue placeholder="Sélectionner le type">
                             {field.value === "income" ? (
-                              <ArrowUpRight className="h-4 w-4 text-budget-success" />
+                              <div className="flex items-center gap-2">
+                                <ArrowUpRight className="h-4 w-4 text-budget-success" />
+                                <span>Revenu</span>
+                              </div>
                             ) : (
-                              <ArrowDownRight className="h-4 w-4 text-budget-danger" />
+                              <div className="flex items-center gap-2">
+                                <ArrowDownRight className="h-4 w-4 text-budget-danger" />
+                                <span>Dépense</span>
+                              </div>
                             )}
                           </SelectValue>
                         </SelectTrigger>
@@ -321,7 +327,7 @@ export function QuickTransactionEntry() {
             </div>
           </CardContent>
           
-          <CardFooter className="flex justify-end gap-2">
+          <CardFooter className="flex justify-end gap-2 pt-4 border-t bg-muted/30">
             <Button type="button" variant="outline" onClick={() => setExpanded(false)}>
               Annuler
             </Button>

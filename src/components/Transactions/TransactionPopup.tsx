@@ -53,7 +53,12 @@ export function TransactionPopup({ transaction, open, onClose }: TransactionPopu
   };
 
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
+    return new Intl.NumberFormat('fr-FR', { 
+      style: 'currency', 
+      currency: 'EUR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
   };
 
   const handleDelete = () => {
@@ -109,8 +114,8 @@ export function TransactionPopup({ transaction, open, onClose }: TransactionPopu
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span className={`p-1 rounded-full ${transaction.type === 'income' ? 'bg-green-100' : 'bg-red-100'}`}>
-              <TransactionIcon className={`h-4 w-4 ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`} />
+            <span className={`p-1.5 rounded-full ${transaction.type === 'income' ? 'bg-green-100/80 dark:bg-green-900/30' : 'bg-red-100/80 dark:bg-red-900/30'}`}>
+              <TransactionIcon className={`h-4 w-4 ${transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
             </span>
             {transaction.description}
           </DialogTitle>
@@ -134,7 +139,7 @@ export function TransactionPopup({ transaction, open, onClose }: TransactionPopu
               <CreditCard className="h-4 w-4 text-muted-foreground" />
               <span className="font-medium">Montant :</span>
             </div>
-            <span className={transaction.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+            <span className={transaction.type === 'income' ? 'text-green-600 dark:text-green-400 font-medium' : 'text-red-600 dark:text-red-400 font-medium'}>
               {transaction.type === 'income' ? '+' : '-'} {formatAmount(transaction.amount)}
             </span>
           </div>

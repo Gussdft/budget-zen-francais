@@ -141,29 +141,25 @@ export const useTransactions = () => {
       const storedGoals = localStorage.getItem("savingsGoals");
       if (storedGoals) {
         const goals = JSON.parse(storedGoals);
-        const updatedGoals = goals.map((goal: any) => {
-          if (goal.id === goalId) {
-            // Pour une dépense (qui contribue à l'épargne), on ajoute au montant actuel
-            // Pour un revenu (retrait de l'épargne), on soustrait
-            const adjustment = type === "expense" ? amount : -amount;
-            
-            // S'assurer que le montant actuel ne dépasse pas le montant cible et ne devient pas négatif
-            const newAmount = Math.max(0, Math.min(goal.targetAmount, goal.currentAmount + adjustment));
-            
-            return {
-              ...goal,
-              currentAmount: newAmount
-            };
-          }
-          return goal;
-        });
-        localStorage.setItem("savingsGoals", JSON.stringify(updatedGoals));
+        const goalToUpdate = goals.find((goal: any) => goal.id === goalId);
+        
+        if (!goalToUpdate) {
+          console.error(`Objectif d'épargne non trouvé: ${goalId}`);
+          return;
+        }
+        
+        // Pour une dépense (qui contribue à l'épargne), on ajoute au montant actuel
+        // Pour un revenu (retrait de l'épargne), on soustrait
+        const adjustment = type === "expense" ? amount : -amount;
+        
+        // Mettre à jour le montant
+        const newAmount = Math.max(0, Math.min(goalToUpdate.targetAmount, goalToUpdate.currentAmount + adjustment));
+        goalToUpdate.currentAmount = parseFloat(newAmount.toFixed(2));
+        
+        localStorage.setItem("savingsGoals", JSON.stringify(goals));
         
         // Notification de mise à jour réussie
-        const goalName = goals.find((g: any) => g.id === goalId)?.title;
-        if (goalName) {
-          toast.success(`Objectif "${goalName}" mis à jour avec succès`);
-        }
+        toast.success(`Objectif "${goalToUpdate.title}" mis à jour: ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(goalToUpdate.currentAmount)}`);
       }
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'objectif d'épargne:", error);
@@ -214,13 +210,13 @@ export const useTransactions = () => {
     
     return {
       currentMonth: {
-        income: totalIncome,
-        expense: totalExpense,
-        balance: totalIncome - totalExpense
+        income: parseFloat(totalIncome.toFixed(2)),
+        expense: parseFloat(totalExpense.toFixed(2)),
+        balance: parseFloat((totalIncome - totalExpense).toFixed(2))
       },
       previousMonth: {
-        income: prevMonthIncome,
-        expense: prevMonthExpense
+        income: parseFloat(prevMonthIncome.toFixed(2)),
+        expense: parseFloat(prevMonthExpense.toFixed(2))
       },
       percentChange: {
         income: parseFloat(incomeChange.toFixed(1)),

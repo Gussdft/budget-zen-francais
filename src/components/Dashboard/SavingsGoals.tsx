@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ const SavingsGoals = () => {
   const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
 
   // Charger les objectifs d'épargne depuis le localStorage
-  useState(() => {
+  useEffect(() => {
     const loadSavingsGoals = () => {
       setIsLoading(true);
       try {
@@ -154,12 +154,41 @@ const SavingsGoals = () => {
     setGoalToDelete(null);
   };
 
+  const calculateProgress = (goal: SavingsGoal) => {
+    const progress = (goal.currentAmount / goal.targetAmount) * 100;
+    return Math.min(progress, 100); // Ensure progress doesn't exceed 100%
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("fr-FR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
+  const getColorClass = (progress: number) => {
+    if (progress < 30) return "bg-red-500";
+    if (progress < 70) return "bg-amber-500";
+    return "bg-green-500";
+  };
+
   if (isLoading) {
     return <p>Chargement des objectifs d'épargne...</p>;
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full h-full">
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center gap-2">
@@ -178,7 +207,7 @@ const SavingsGoals = () => {
         <CardDescription>Suivez vos progrès vers vos objectifs financiers</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[340px] overflow-y-auto pr-1">
           {savingsGoals.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">Aucun objectif d'épargne défini</p>
           ) : (
@@ -187,10 +216,10 @@ const SavingsGoals = () => {
               const colorClass = getColorClass(progress);
 
               return (
-                <div key={goal.id} className="border rounded-md p-4 space-y-2">
+                <div key={goal.id} className="border rounded-md p-4 space-y-2 bg-card hover:shadow-md transition-all">
                   <div className="flex justify-between items-start">
                     <h3 className="font-medium">{goal.title}</h3>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 items-center">
                       <Sparkles className="h-4 w-4 text-amber-500" />
                       <Button 
                         variant="ghost" 

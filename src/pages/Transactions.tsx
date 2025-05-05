@@ -56,18 +56,17 @@ const Transactions = () => {
   };
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
+    <MainLayout title="Transactions">
+      <div className="space-y-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-3xl font-semibold">Transactions</h1>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-primary hover:bg-primary/90">
+            <Button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-gradient-to-r from-primary/80 to-primary hover:from-primary hover:to-primary/80 shadow-sm">
               <PlusCircle className="h-5 w-5" /> Nouvelle transaction
             </Button>
           </div>
         </div>
         
-        <Card className="border border-border">
+        <Card className="border border-border shadow-sm">
           <CardContent className="p-4">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
               <div className="flex items-center gap-2">
@@ -116,8 +115,18 @@ const Transactions = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tous les types</SelectItem>
-                      <SelectItem value="income">Revenus</SelectItem>
-                      <SelectItem value="expense">Dépenses</SelectItem>
+                      <SelectItem value="income">
+                        <div className="flex items-center gap-2">
+                          <span className="w-3 h-3 rounded-full bg-budget-success"></span>
+                          <span>Revenus</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="expense">
+                        <div className="flex items-center gap-2">
+                          <span className="w-3 h-3 rounded-full bg-budget-danger"></span>
+                          <span>Dépenses</span>
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -164,6 +173,7 @@ const Transactions = () => {
                 )}
                 {filterType !== "all" && (
                   <Badge variant="outline" className="flex items-center gap-1">
+                    <span className={`w-2 h-2 rounded-full ${filterType === "income" ? "bg-budget-success" : "bg-budget-danger"}`}></span>
                     {filterType === "income" ? "Revenus" : "Dépenses"}
                   </Badge>
                 )}

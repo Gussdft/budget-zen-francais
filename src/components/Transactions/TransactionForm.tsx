@@ -117,7 +117,7 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
     
     // Préparer les données de transaction
     const transactionData = {
-      amount: values.amount,
+      amount: parseFloat(values.amount.toFixed(2)),
       date: formattedDate,
       description: values.description,
       categoryId: values.categoryId,
@@ -142,8 +142,8 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="w-full border border-border shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between bg-muted/30">
         <CardTitle>{transactionId ? "Modifier la transaction" : "Nouvelle transaction"}</CardTitle>
         <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="h-5 w-5" />
@@ -152,7 +152,7 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -165,12 +165,18 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="flex items-center gap-2">
                           <SelectValue placeholder="Sélectionner le type">
                             {field.value === "income" ? (
-                              <ArrowUpRight className="h-4 w-4 text-budget-success" />
+                              <div className="flex items-center gap-2">
+                                <ArrowUpRight className="h-4 w-4 text-budget-success" />
+                                <span>Revenu</span>
+                              </div>
                             ) : (
-                              <ArrowDownRight className="h-4 w-4 text-budget-danger" />
+                              <div className="flex items-center gap-2">
+                                <ArrowDownRight className="h-4 w-4 text-budget-danger" />
+                                <span>Dépense</span>
+                              </div>
                             )}
                           </SelectValue>
                         </SelectTrigger>
@@ -326,7 +332,7 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
             )}
           </CardContent>
           
-          <CardFooter className="flex justify-end gap-2">
+          <CardFooter className="flex justify-end gap-2 pt-4 border-t bg-muted/30">
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
