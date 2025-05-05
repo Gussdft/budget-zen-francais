@@ -111,6 +111,8 @@ const SavingsGoals = () => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency: "EUR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   };
 
@@ -152,35 +154,6 @@ const SavingsGoals = () => {
     }
     setDeleteDialogOpen(false);
     setGoalToDelete(null);
-  };
-
-  const calculateProgress = (goal: SavingsGoal) => {
-    const progress = (goal.currentAmount / goal.targetAmount) * 100;
-    return Math.min(progress, 100); // Ensure progress doesn't exceed 100%
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fr-FR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
-
-  const getColorClass = (progress: number) => {
-    if (progress < 30) return "bg-red-500";
-    if (progress < 70) return "bg-amber-500";
-    return "bg-green-500";
   };
 
   if (isLoading) {
