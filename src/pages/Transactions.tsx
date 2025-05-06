@@ -94,7 +94,7 @@ const Transactions = () => {
                       <SelectValue placeholder="Toutes les catégories" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={undefined}>Toutes les catégories</SelectItem>
+                      <SelectItem value="all-categories">Toutes les catégories</SelectItem>
                       {categories.map(category => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}

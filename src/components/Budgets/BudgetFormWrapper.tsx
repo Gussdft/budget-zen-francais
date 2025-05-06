@@ -189,18 +189,24 @@ export function BudgetFormWrapper({ budgetId, onClose }: BudgetFormProps) {
           <div className="space-y-2">
             <Label>Catégories de dépenses</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 pt-1">
-              {expenseCategories.map((category) => (
-                <div key={category.id} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`cat-${category.id}`}
-                    checked={formValues.categories.includes(category.id)}
-                    onCheckedChange={() => handleCategoryToggle(category.id)}
-                  />
-                  <Label htmlFor={`cat-${category.id}`} className="cursor-pointer">
-                    {category.name}
-                  </Label>
+              {expenseCategories.length > 0 ? (
+                expenseCategories.map((category) => (
+                  <div key={category.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`cat-${category.id}`}
+                      checked={formValues.categories.includes(category.id)}
+                      onCheckedChange={() => handleCategoryToggle(category.id)}
+                    />
+                    <Label htmlFor={`cat-${category.id}`} className="cursor-pointer">
+                      {category.name}
+                    </Label>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  Aucune catégorie de dépense disponible
                 </div>
-              ))}
+              )}
             </div>
             {formValues.categories.length === 0 && (
               <p className="text-sm text-red-500 mt-1">
