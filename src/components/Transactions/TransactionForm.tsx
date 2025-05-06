@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -265,7 +264,7 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
                             </SelectItem>
                           ))
                         ) : (
-                          <SelectItem value="" disabled>
+                          <SelectItem value="no-goals" disabled>
                             Aucun objectif d'épargne disponible
                           </SelectItem>
                         )}
@@ -302,7 +301,7 @@ export function TransactionForm({ onClose, transactionId }: TransactionFormProps
                               </SelectItem>
                             ))
                           ) : (
-                            <SelectItem value="default" disabled>
+                            <SelectItem value="no-categories" disabled>
                               Aucune catégorie disponible
                             </SelectItem>
                           )}
